@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  auth-db:
+    image: postgres:15
+    container_name: auth-db
+    environment:
+      POSTGRES_DB: authdb
+      POSTGRES_USER: authuser
+      POSTGRES_PASSWORD: authpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+
+  auth-service:
+    build:
+      context: ../services/auth-service
+    container_name: auth-service
+    depends_on:
+      - auth-db
+    environment:
+      DB_URL: jdbc:postgresql://auth-db:5432/authdb
+      DB_USER: authuser
+      DB_PASSWORD: authpass
+    ports:
+      - "8080:8080"
+
+volumes:
+  auth-db-data:
