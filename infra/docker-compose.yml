@@ -1,6 +1,7 @@
 version: "3.9"
 
 services:
+  # ---------- AUTH DATABASE ----------
   auth-db:
     image: postgres:15
     container_name: auth-db
@@ -13,6 +14,7 @@ services:
     volumes:
       - auth-db-data:/var/lib/postgresql/data
 
+  # ---------- AUTH SERVICE ----------
   auth-service:
     build:
       context: ../services/auth-service
@@ -26,5 +28,66 @@ services:
     ports:
       - "8080:8080"
 
+  # ---------- TICKET DATABASE ----------
+  ticket-db:
+    image: postgres:15
+    container_name: ticket-db
+    environment:
+      POSTGRES_DB: ticketdb
+      POSTGRES_USER: ticketuser
+      POSTGRES_PASSWORD: ticketpass
+    ports:
+      - "5433:5432"
+    volumes:
+      - ticket-db-data:/var/lib/postgresql/data
+
+  # ---------- TICKET SERVICE ----------
+  ticket-service:
+    build:
+      context: ../services/ticket-service
+    container_name: ticket-service
+    depends_on:
+      - ticket-db
+      - auth-service
+    environment:
+      DB_URL: jdbc:postgresql://ticket-db:5432/ticketdb
+      DB_USER: ticketuser
+      DB_PASSWORD: ticketpass
+    ports:
+      - "8081:8081"
+
 volumes:
   auth-db-data:
+  ticket-db-data:
+
+
+#version: "3.9"
+#
+#services:
+#  auth-db:
+#    image: postgres:15
+#    container_name: auth-db
+#    environment:
+#      POSTGRES_DB: authdb
+#      POSTGRES_USER: authuser
+#      POSTGRES_PASSWORD: authpass
+#    ports:
+#      - "5432:5432"
+#    volumes:
+#      - auth-db-data:/var/lib/postgresql/data
+#
+#  auth-service:
+#    build:
+#      context: ../services/auth-service
+#    container_name: auth-service
+#    depends_on:
+#      - auth-db
+#    environment:
+#      DB_URL: jdbc:postgresql://auth-db:5432/authdb
+#      DB_USER: authuser
+#      DB_PASSWORD: authpass
+#    ports:
+#      - "8080:8080"
+#
+#volumes:
+#  auth-db-data:
