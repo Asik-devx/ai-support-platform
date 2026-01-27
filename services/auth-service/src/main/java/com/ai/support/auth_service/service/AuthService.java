@@ -5,6 +5,8 @@ import com.ai.support.auth_service.domain.User;
 import com.ai.support.auth_service.dto.AuthResponse;
 import com.ai.support.auth_service.dto.LoginRequest;
 import com.ai.support.auth_service.dto.RegisterRequest;
+import com.ai.support.auth_service.exception.BadRequestException;
+import com.ai.support.auth_service.exception.UnauthorizedException;
 import com.ai.support.auth_service.repository.UserRepository;
 import com.ai.support.auth_service.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +23,7 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email())) {
-            throw new RuntimeException("Email already exists");
+            throw new BadRequestException("Email already exists");
         }
 
         User user = User.builder()
@@ -36,10 +38,10 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+                .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new RuntimeException("Invalid credentials");
+            throw new UnauthorizedException("Invalid credentials");
         }
 
         return new AuthResponse(jwtService.generateToken(user));
