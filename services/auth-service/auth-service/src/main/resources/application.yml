@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/authdb
+    username: postgres
+    password: Qazwsx@321
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
