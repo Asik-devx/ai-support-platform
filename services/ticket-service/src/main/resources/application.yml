@@ -13,4 +13,4 @@ spring:
     show-sql: false
 
 jwt:
-  secret: CHANGE_THIS_SECRET
+  secret: change-this-secret-key-to-at-least-32-characters

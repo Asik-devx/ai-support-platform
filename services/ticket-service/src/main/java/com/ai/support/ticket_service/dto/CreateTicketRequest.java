@@ -1,4 +1,7 @@
 package com.ai.support.ticket_service.dto;
 
-public class CreateTicketRequest {
-}
+
+public record CreateTicketRequest(
+        String title,
+        String description
+) {}

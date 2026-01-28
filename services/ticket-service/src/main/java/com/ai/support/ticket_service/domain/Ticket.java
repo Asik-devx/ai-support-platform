@@ -35,9 +35,14 @@ public class Ticket {
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL)
     private List<TicketMessage> messages = new ArrayList<>();
 
+    @Enumerated(EnumType.STRING)
+    private TicketPriority priority;
+
+
     @PrePersist
     void onCreate() {
         this.createdAt = Instant.now();
         this.status = TicketStatus.OPEN;
+        this.priority = TicketPriority.MEDIUM;
     }
 }

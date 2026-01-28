@@ -14,9 +14,5 @@ COPY --from=build /app/target/*.jar app.jar
 # JVM tuning (interview-worthy)
 ENV JAVA_OPTS="-XX:+UseG1GC -XX:MaxRAMPercentage=75"
 
-EXPOSE 8081
+EXPOSE 8080
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
-FROM ubuntu:latest
-LABEL authors="Ashik-SE"
-
-ENTRYPOINT ["top", "-b"]

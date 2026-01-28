@@ -1,6 +1,7 @@
 package com.ai.support.ticket_service.controller;
 
 import com.ai.support.ticket_service.domain.Ticket;
+import com.ai.support.ticket_service.dto.CreateTicketRequest;
 import com.ai.support.ticket_service.service.TicketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -17,11 +18,14 @@ public class TicketController {
 
     @PostMapping
     public Ticket create(
-            @RequestParam String title,
-            @RequestParam String description,
+            @RequestBody CreateTicketRequest request,
             Authentication auth
     ) {
-        return ticketService.create(auth.getPrincipal().toString(), title, description);
+        return ticketService.create(
+                auth.getPrincipal().toString(),
+                request.title(),
+                request.description()
+        );
     }
 
     @GetMapping
