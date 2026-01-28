@@ -2,8 +2,11 @@ package com.ai.support.ticket_service.service;
 
 import com.ai.support.ticket_service.domain.Ticket;
 import com.ai.support.ticket_service.domain.TicketPriority;
+import com.ai.support.ticket_service.dto.TicketCreatedEvent;
 import com.ai.support.ticket_service.repository.TicketRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,6 +17,9 @@ public class TicketService {
 
     private final TicketRepository ticketRepository;
     private final AiClient aiClient;
+    private final StringRedisTemplate redisTemplate;
+
+    private final ObjectMapper objectMapper;
 
     public Ticket create(String userId, String title, String description) {
 
@@ -25,15 +31,16 @@ public class TicketService {
 
         ticket = ticketRepository.save(ticket);
 
-        // AI classification
         try {
-            var aiResponse = aiClient.classify(title, description);
-            ticket.setPriority(
-                    TicketPriority.valueOf(aiResponse.priority())
-            );
-            ticketRepository.save(ticket);
-        } catch (Exception ex) {
-            // graceful degradation
+            TicketCreatedEvent event =
+                    new TicketCreatedEvent(ticket.getId(), title, description);
+
+            String payload = objectMapper.writeValueAsString(event);
+
+            redisTemplate.convertAndSend("ticket.created", payload);
+
+        } catch (Exception e) {
+            // fire-and-forget: do NOT break ticket creation
         }
 
         return ticket;

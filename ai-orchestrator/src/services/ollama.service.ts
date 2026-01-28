@@ -9,11 +9,18 @@ export async function classifyWithOllama(
   description: string
 ) {
   const cacheKey = ticketCacheKey(title, description);
+  console.log("[AI] cache key:", cacheKey);
 
   // 1️⃣ Check cache
-  const cached = await redis.get(cacheKey);
-  if (cached) {
-    return JSON.parse(cached);
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      console.log("[AI] cache HIT");
+      return JSON.parse(cached);
+    }
+    console.log("[AI] cache MISS");
+  } catch (err) {
+    console.error("[AI] Redis GET failed:", (err as Error).message);
   }
 
   // 2️⃣ Call Ollama
@@ -25,24 +32,42 @@ Title: ${title}
 Description: ${description}
 `;
 
-  const response = await axios.post(`${OLLAMA_URL}/api/generate`, {
-    model: "llama3",
-    prompt,
-    stream: false
-  });
+  console.log("[AI] calling Ollama:", OLLAMA_URL);
 
-  const priority = extractPriority(response.data.response);
+  let responseText: string;
+  try {
+    const response = await axios.post(`${OLLAMA_URL}/api/generate`, {
+      model: "llama3",
+      prompt,
+      stream: false
+    });
+
+    responseText = response.data.response;
+    console.log("[AI] Ollama response:", responseText);
+  } catch (err) {
+    console.error("[AI] Ollama call failed:", (err as Error).message);
+    throw err;
+  }
+
+  const priority = extractPriority(responseText);
+  console.log("[AI] extracted priority:", priority);
 
   const result = { priority };
 
   // 3️⃣ Cache result (TTL 1 hour)
-  await redis.setex(cacheKey, 3600, JSON.stringify(result));
+  try {
+    await redis.setex(cacheKey, 3600, JSON.stringify(result));
+    console.log("[AI] cached result (TTL 3600s)");
+  } catch (err) {
+    console.error("[AI] Redis SET failed:", (err as Error).message);
+  }
 
   return result;
 }
 
 function extractPriority(text: string): "LOW" | "MEDIUM" | "HIGH" {
-  if (text.includes("HIGH")) return "HIGH";
-  if (text.includes("LOW")) return "LOW";
+  const normalized = text.toUpperCase();
+  if (normalized.includes("HIGH")) return "HIGH";
+  if (normalized.includes("LOW")) return "LOW";
   return "MEDIUM";
 }
