@@ -33,7 +33,7 @@ public class TicketService {
 
         try {
             TicketCreatedEvent event =
-                    new TicketCreatedEvent(ticket.getId(), title, description);
+                    new TicketCreatedEvent(ticket.getId(), title, description, 0);
 
             String payload = objectMapper.writeValueAsString(event);
 

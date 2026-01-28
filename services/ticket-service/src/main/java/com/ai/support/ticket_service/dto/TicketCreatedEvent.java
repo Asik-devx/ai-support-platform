@@ -5,5 +5,6 @@ import java.util.UUID;
 public record TicketCreatedEvent(
         UUID ticketId,
         String title,
-        String description
+        String description,
+        int retryCount
 ) {}
