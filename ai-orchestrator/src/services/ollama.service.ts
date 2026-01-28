@@ -1,3 +1,5 @@
+import { redis } from "./redis.service.js";
+import { ticketCacheKey } from "./cache.util.js";
 import axios from "axios";
 
 const OLLAMA_URL = "http://host.docker.internal:11434";
@@ -6,9 +8,17 @@ export async function classifyWithOllama(
   title: string,
   description: string
 ) {
+  const cacheKey = ticketCacheKey(title, description);
+
+  // 1️⃣ Check cache
+  const cached = await redis.get(cacheKey);
+  if (cached) {
+    return JSON.parse(cached);
+  }
+
+  // 2️⃣ Call Ollama
   const prompt = `
-You are a customer support system.
-Classify the ticket priority as one word only:
+Classify the ticket priority as one word:
 LOW, MEDIUM, or HIGH.
 
 Title: ${title}
@@ -21,11 +31,14 @@ Description: ${description}
     stream: false
   });
 
-  const text: string = response.data.response.trim();
+  const priority = extractPriority(response.data.response);
 
-  return {
-    priority: extractPriority(text)
-  };
+  const result = { priority };
+
+  // 3️⃣ Cache result (TTL 1 hour)
+  await redis.setex(cacheKey, 3600, JSON.stringify(result));
+
+  return result;
 }
 
 function extractPriority(text: string): "LOW" | "MEDIUM" | "HIGH" {

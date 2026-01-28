@@ -59,12 +59,20 @@ services:
   ai-orchestrator:
     build: ../ai-orchestrator
     container_name: ai-orchestrator
+    depends_on:
+      - redis
     environment:
       OPENAI_API_KEY: your_key_here
-      REDIS_URL: redis://:Qazwsx321@redis:6379
+      REDIS_URL: redis://redis:6379
     ports:
       - "4000:4000"
 
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
 
 volumes:
   auth-db-data:
