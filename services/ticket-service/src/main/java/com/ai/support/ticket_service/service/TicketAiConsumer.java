@@ -1,5 +1,6 @@
 package com.ai.support.ticket_service.service;
 
+import com.ai.support.ticket_service.domain.TicketAiStatus;
 import com.ai.support.ticket_service.dto.TicketCreatedEvent;
 import com.ai.support.ticket_service.domain.Ticket;
 import com.ai.support.ticket_service.domain.TicketPriority;
@@ -40,7 +41,7 @@ public class TicketAiConsumer implements MessageListener {
             ticket.setPriority(
                     TicketPriority.valueOf(aiResponse.priority())
             );
-
+            ticket.setAiStatus(TicketAiStatus.COMPLETED);
             ticketRepository.save(ticket);
 
         } catch (Exception ex) {

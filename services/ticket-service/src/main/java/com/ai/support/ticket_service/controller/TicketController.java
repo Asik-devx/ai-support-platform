@@ -2,12 +2,14 @@ package com.ai.support.ticket_service.controller;
 
 import com.ai.support.ticket_service.domain.Ticket;
 import com.ai.support.ticket_service.dto.CreateTicketRequest;
+import com.ai.support.ticket_service.repository.TicketRepository;
 import com.ai.support.ticket_service.service.TicketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/tickets")
@@ -15,6 +17,7 @@ import java.util.List;
 public class TicketController {
 
     private final TicketService ticketService;
+    private final TicketRepository ticketRepository;
 
     @PostMapping
     public Ticket create(
@@ -31,5 +34,9 @@ public class TicketController {
     @GetMapping
     public List<Ticket> myTickets(Authentication auth) {
         return ticketService.myTickets(auth.getPrincipal().toString());
+    }
+    @GetMapping("/{id}")
+    public Ticket get(@PathVariable UUID id) {
+        return ticketRepository.findById(id).orElseThrow();
     }
 }

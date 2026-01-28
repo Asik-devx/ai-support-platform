@@ -38,11 +38,14 @@ public class Ticket {
     @Enumerated(EnumType.STRING)
     private TicketPriority priority;
 
+    @Enumerated(EnumType.STRING)
+    private TicketAiStatus aiStatus;
 
     @PrePersist
     void onCreate() {
         this.createdAt = Instant.now();
         this.status = TicketStatus.OPEN;
         this.priority = TicketPriority.MEDIUM;
+        this.aiStatus = TicketAiStatus.PENDING;
     }
 }
